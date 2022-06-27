@@ -1,0 +1,11 @@
+# Jetbrains IDE
+.idea/*
+
+# VSCode Files
+.vscode/*
+
+# Obsidan
+.obsidian/*
+
+# VituralEnv
+.venv/*
