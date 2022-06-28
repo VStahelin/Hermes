@@ -1,0 +1,8 @@
+-r base.txt
+
+# Flask
+Flask==2.1.2
+
+#Lint
+black==22.6.0
+isort==5.10.1
