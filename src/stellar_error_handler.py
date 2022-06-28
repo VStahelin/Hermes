@@ -101,9 +101,9 @@ class StellarErrorHandler:
                     envelope_xdr = TransactionEnvelope.from_xdr(
                         extras["envelope_xdr"], self.network
                     )
-                    self.operations.append(
-                        {"envelope": envelope_xdr}
-                    )  # temporary, just for debug in POC
+                    # self.operations.append(
+                    #     {"envelope": envelope_xdr}
+                    # )  # temporary, just for debug in POC
                 except Exception as e:
                     print(e)
 
