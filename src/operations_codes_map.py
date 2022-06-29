@@ -1,0 +1,18 @@
+CODES = {
+    "op_bad_auth": "Err: needs more signatures to complete this operation.",
+    "op_no_source_account": "Err: The source account was not found.",
+    "op_not_supported": "Err: The operation is not supported at this time.",
+    "op_too_many_subentries": "Err: Max number of subentries (1000) already reached.",
+    "op_exceeded_work_limit": "Err: Operation did too much work.",
+    "OpMalformed": "Err: The operation is malformed because the source account cannot merge with itself. The destination must be a different account.",
+    "op_no_account": "Err: The destination account does not exist.",
+    "op_immutable_set": "Err: The source account has AUTH_IMMUTABLE flag set.",
+    "op_has_sub_entries": "Err: The source account has trustlines and/or offers.",
+    "op_seq_num_too_far": "Err: Source account sequence number is too high.",
+    "op_dest_full": "Err: The destination account cannot receive the balance of the source account and still satisfy its lumen buying liabilities.",
+    "op_not_supported_yet": "Err: The network hasn’t moved to this protocol change yet. This failure means the network doesn’t support this feature yet",
+    "op_data_name_not_found": "Err: Trying to remove a Data Entry that isn’t there. This will happen if Name is set (and Value isn’t) but the Account doesn’t have a DataEntry with that Name.",
+    "op_low_reserve": "Err: This account does not have enough XLM to satisfy the minimum XLM reserve increase caused by adding a subentry and still satisfy its XLM selling liabilities. For every new DataEntry added to an account, the minimum reserve of XLM that account must hold increases.",
+    "op_data_invalid_name": "Err: Name not a valid string.",
+    "op_bad_seq": "Err: The specified bumpTo sequence number is not a valid sequence number. It must be between 0 and INT64_MAX (9223372036854775807 or 0x7fffffffffffffff).",
+}
