@@ -7,18 +7,19 @@ kanban-plugin: basic
 ## Backlog
 
 - [ ] Correlate Transaction X Result XDR
-- [ ] Pydoc Markdown
-- [ ] Unit tests
 - [ ] Create package
+- [ ] Pydoc Markdown
 
 
 ## TO DO
 
+- [ ] Unit tests
+- [ ] Improve code_maps, preferably automatically
 
 
 ## Developing
 
-- [ ] [[docs/README]]
+- [ ] Refactor handler with Horizon-Specific Status Codes
 
 
 ## Finished
