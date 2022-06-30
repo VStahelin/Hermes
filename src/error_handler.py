@@ -1,60 +1,116 @@
-from enum import Enum
-from types import RESPONSE_BODY_TYPE
+from stellar_sdk.xdr import TransactionResult
 
-from models import BaseStellarErrorModel
+from consts import MESSAGES, RESPONSE_BODY_TYPE
+from models import StellarError
+from transaction_codes_map import TRANSACTION_CODE_MAP
 
 
 class ErrorHandler:
-    def __init__(self, error: object):
+    def __init__(self, error: object, main_net: bool = True):
         self.error = error
+        self.main_net = main_net
 
-    def get_error(self) -> BaseStellarErrorModel:
+    def get_error(self) -> StellarError:
         """
         Treats the error and returns a stellar error model
         """
+        stellar_error = StellarError(main_net=self.main_net)
+        stellar_error.set_title(self.error["title"] if "title" in self.error else None)
+        stellar_error.set_status(
+            self.error["status"] if "status" in self.error else None
+        )
+        stellar_error.set_message(
+            self.error["detail"] if "detail" in self.error else None
+        )
+
         error_type = (
             RESPONSE_BODY_TYPE[self.error["title"]]
             if self.error["title"] in RESPONSE_BODY_TYPE
             else None
         )
         if error_type:
-            return HorizonFunctionsEnum.value[error_type](self.error)
-        return HorizonFunctionsEnum.value[RESPONSE_BODY_TYPE["Unexpected Error"]](self.error)
+            return HANDLERS[error_type](self.error, stellar_error)
+        return HANDLERS["UNEXPECTED_ERROR"](self.error, stellar_error)
 
 
-def __transaction_failed__(error: object) -> BaseStellarErrorModel:
+def _transaction_failed_(error: object, stellar_error: StellarError) -> StellarError:
+    if "extras" in error and error["extras"]:
+        extras = error["extras"]
+        tx_result = extras["result_xdr"]
+
+        # Get transaction error codes
+        if "result_xdr" in extras:
+            try:
+                tx_result = TransactionResult.from_xdr(tx_result)
+            except Exception as e:
+                tx_result = None
+                print(e)
+
+            # List the operations performed up to the time of the error in order
+            if "result_codes" in extras:
+                result_codes = extras["result_codes"]
+                if "transaction" in result_codes:
+                    stellar_error.set_tx_codes(result_codes["transaction"])
+                    stellar_error.set_message(
+                        TRANSACTION_CODE_MAP[stellar_error.get_tx_codes()]
+                        if stellar_error.get_tx_codes() in TRANSACTION_CODE_MAP
+                        else "Untracked error code"
+                    )
+                if "operations" in result_codes:
+                    operations = []
+                    for index, operation in enumerate(result_codes["operations"]):
+                        op_details = MESSAGES["NO_OPERATION_DETAILS"]
+                        if operation in TRANSACTION_CODE_MAP:
+                            op_details = TRANSACTION_CODE_MAP[operation]
+                        elif tx_result is not None:
+                            if hasattr(tx_result, "type"):
+                                op_details = (
+                                    tx_result.result.results[index]
+                                    .tr.type.__str__()
+                                    .replace("OperationType.", "")
+                                )
+                        operation = {
+                            "index": index,
+                            "code": operation,
+                            "detail": op_details,
+                        }
+                        operations.append(operation)
+
+                        stellar_error.set_operations(operations)
+
+        return stellar_error
+
+
+def _transaction_malformed_(error: object, stellar_error: StellarError) -> StellarError:
     pass
 
 
-def __transaction_malformed__(error: object) -> BaseStellarErrorModel:
+def _before_history_(error: object, stellar_error: StellarError) -> StellarError:
     pass
 
 
-def __before_history__(error: object) -> BaseStellarErrorModel:
+def _stale_history_(error: object, stellar_error: StellarError) -> StellarError:
     pass
 
 
-def __stale_history__(error: object) -> BaseStellarErrorModel:
+def _timeout_(error: object, stellar_error: StellarError) -> StellarError:
     pass
 
 
-def __timeout__(error: object) -> BaseStellarErrorModel:
+def _bad_request_(error: object, stellar_error: StellarError) -> StellarError:
     pass
 
 
-def __bad_request__(error: object) -> BaseStellarErrorModel:
+def _unexpected_error_(error: object, stellar_error: StellarError) -> StellarError:
     pass
 
 
-def __unexpected_error__(error: object) -> BaseStellarErrorModel:
-    pass
-
-
-class HorizonFunctionsEnum(Enum):
-    TRANSACTION_FAILED = __transaction_failed__
-    TRANSACTION_MALFORMED = __transaction_malformed__
-    BEFORE_HISTORY = __before_history__
-    STALE_HISTORY = __stale_history__
-    TIMEOUT = __timeout__
-    BAD_REQUEST = __bad_request__
-    UNEXPECTED_ERROR = __unexpected_error__
+HANDLERS = {
+    "TRANSACTION_FAILED": _transaction_failed_,
+    "TRANSACTION_MALFORMED": _transaction_malformed_,
+    "BEFORE_HISTORY": _before_history_,
+    "STALE_HISTORY": _stale_history_,
+    "TIMEOUT": _timeout_,
+    "BAD_REQUEST": _bad_request_,
+    "UNEXPECTED_ERROR": _unexpected_error_,
+}

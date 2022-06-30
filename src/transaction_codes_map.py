@@ -1,4 +1,4 @@
-CODES = {
+TRANSACTION_CODE_MAP = {
     "tx_failed": " Err: One of the operations failed.",
     "tx_bad_auth": " Err: needs more signatures to complete this operation.",
     "tx_too_early": " Err: The ledger closeTime was before the minTime.",

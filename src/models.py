@@ -1,34 +1,34 @@
 from stellar_error_handler import NETWORK_PASSPHRASE
 
 
-class BaseStellarErrorModel:
+class StellarError:
     """
     Base class for all stellar error models.
     """
 
     def __init__(
         self,
-        title: str,
-        status: int,
-        message: str,
-        more_details: dict = None,
+        main_net: bool = True,
+        title: str = None,
+        status: int = None,
+        message: str = None,
         tx_codes: list = None,
         operations: list = None,
-        error_pointer: str = None,
-        main_net: bool = True,
+        more_details: dict = None,
+        error_pointer: dict = None,
     ):
-        self.network = (
+        self._network_ = (
             NETWORK_PASSPHRASE["MAIN_NET"]
             if main_net
             else NETWORK_PASSPHRASE["TESTNET"]
         )
-        self.title = title
-        self.status = status
-        self.more_details = more_details
-        self.tx_codes = tx_codes
-        self.message = message
-        self.operations = operations
-        self.error_pointer = error_pointer
+        self._title_ = title
+        self._status_ = status
+        self._more_details_ = more_details
+        self._tx_codes_ = tx_codes
+        self._message_ = message
+        self._operations_ = operations
+        self._error_pointer_ = error_pointer
 
     def has_any_info(self):
         """
@@ -43,29 +43,58 @@ class BaseStellarErrorModel:
             ]
         )
 
-    def get_message(self):
-        return self.message
+    def get_network(self) -> None or str:
+        return self._network_
 
-    def get_operations(self):
-        return self.operations
+    def set_network(self, network: str) -> None or str:
+        if network in NETWORK_PASSPHRASE:
+            self._network_ = NETWORK_PASSPHRASE[network]
+        return "Network not found"
 
-    def get_status(self):
-        return self.status
+    def get_title(self) -> None or str:
+        return self._title_
 
-    def get_tx_codes(self):
-        return self.tx_codes
+    def set_title(self, title: str):
+        self._title_ = title
 
-    def get_title(self):
-        return self.title
+    def get_status(self) -> int:
+        return self._status_
 
-    def get_more_details(self):
-        return self.more_details
+    def set_status(self, status: int) -> None or int:
+        self._status_ = status
 
-    def get_error_pointer(self):
-        return self.error_pointer
+    def get_message(self) -> None or str:
+        return self._message_
+
+    def set_message(self, message: str):
+        self._message_ = message
+
+    def get_more_details(self) -> None or dict:
+        return self._more_details_
+
+    def set_more_details(self, more_details: dict):
+        self._more_details_ = more_details
+
+    def get_operations(self) -> None or list:
+        return self._operations_
+
+    def set_operations(self, operations: list):
+        self._operations_ = operations
+
+    def get_tx_codes(self) -> None or list:
+        return self._tx_codes_
+
+    def set_tx_codes(self, tx_codes: list):
+        self._tx_codes_ = tx_codes
+
+    def get_error_pointer(self) -> None or dict:
+        return self._error_pointer_
+
+    def set_error_pointer(self, error_pointer: dict):
+        self._error_pointer_ = error_pointer
 
     def __str__(self):
-        return self.error_pointer if self.get_error_pointer() else "Object blank"
+        return self._error_pointer_ if self.get_error_pointer() else "Object blank"
 
     def as_dict(self):
         """

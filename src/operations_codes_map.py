@@ -1,4 +1,4 @@
-CODES = {
+OPERATION_CODE_MAP = {
     "op_bad_auth": "Err: needs more signatures to complete this operation.",
     "op_no_source_account": "Err: The source account was not found.",
     "op_not_supported": "Err: The operation is not supported at this time.",

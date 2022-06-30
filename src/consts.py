@@ -12,3 +12,7 @@ NETWORK_PASSPHRASE = {
     "TESTNET": "Testnet",
     "MAIN_NET": "Pubnet",
 }
+
+MESSAGES = {
+    "NO_OPERATION_DETAILS": "No operation details found",
+}
