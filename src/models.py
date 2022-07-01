@@ -9,20 +9,20 @@ class StellarError:
     def __init__(
         self,
         main_net: bool = True,
-        title: str = None,
+        error_type: str = None,
         status: int = None,
         message: str = None,
         tx_codes: list = None,
-        operations: list = None,
-        more_details: dict = None,
-        error_pointer: dict = None,
+        operations: list = None,  # TODO: Create a default list of operations
+        more_details: dict = None,  # TODO: Create a default dict of more details
+        error_pointer: dict = None,  # TODO: Create a default dict of error pointer
     ):
         self._network_ = (
             NETWORK_PASSPHRASE["MAIN_NET"]
             if main_net
             else NETWORK_PASSPHRASE["TESTNET"]
         )
-        self._title_ = title
+        self._error_type_ = error_type
         self._status_ = status
         self._more_details_ = more_details
         self._tx_codes_ = tx_codes
@@ -36,7 +36,7 @@ class StellarError:
         """
         return any(
             [
-                self.get_title(),
+                self.get_error_type(),
                 self.get_message(),
                 self.get_operations(),
                 self.get_more_details(),
@@ -51,11 +51,11 @@ class StellarError:
             self._network_ = NETWORK_PASSPHRASE[network]
         return "Network not found"
 
-    def get_title(self) -> None or str:
-        return self._title_
+    def get_error_type(self) -> None or str:
+        return self._error_type_
 
-    def set_title(self, title: str):
-        self._title_ = title
+    def set_error_type(self, error_type: str):
+        self._error_type_ = error_type
 
     def get_status(self) -> int:
         return self._status_
@@ -102,7 +102,7 @@ class StellarError:
         """
         if self.has_any_info():
             return {
-                "title": self.get_title(),
+                "error_type": self.get_error_type(),
                 "status": self.get_status(),
                 "message": self.get_message(),
                 "tx_codes": self.get_tx_codes(),
