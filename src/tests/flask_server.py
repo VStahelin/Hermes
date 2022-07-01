@@ -4,9 +4,17 @@ from stellar_sdk import Server
 
 from error_handler import ErrorHandler
 from stellar_error_handler import StellarErrorHandler
+from tests.samples.result_xdr_samples.bad_request import BAD_REQUEST_SAMPLE
+from tests.samples.result_xdr_samples.before_history import BEFORE_HISTORY_SAMPLE
+from tests.samples.result_xdr_samples.resource_missing import RESOURCE_MISSING_SAMPLE
+from tests.samples.result_xdr_samples.timeout import TIMEOUT_SAMPLE
 from tests.samples.result_xdr_samples.transaction_failed import (
     TRANSACTION_FAILED_SAMPLE,
 )
+from tests.samples.result_xdr_samples.transaction_malformed import (
+    TRANSACTION_MALFORMED_SAMPLE,
+)
+from tests.samples.result_xdr_samples.unknown import UNKNOWN_SAMPLE
 
 app = Flask(__name__)
 
@@ -45,7 +53,7 @@ def list_all_errors():
 
 
 @app.route("/v2/transaction_failed/")
-def list_all_errors_v2():
+def v2_transaction_failed():
     """
     Test the error handler with all samples
     """
@@ -56,14 +64,82 @@ def list_all_errors_v2():
 
 
 @app.route("/v2/transaction_failed/<int:sample_index>")
-def error_tester_v2(sample_index):
+def v2_transaction_failed_id(sample_index):
     """
     Test the error handler with a sample envelope
     """
     return (
-        ErrorHandler(TRANSACTION_FAILED_SAMPLE[sample_index - 1], main_net=False)
+        ErrorHandler(TRANSACTION_FAILED_SAMPLE[sample_index], main_net=False)
         .get_error()
         .as_dict()
+    )
+
+
+@app.route("/v2/transaction_malformed/<int:sample_index>")
+def v2_transaction_malformed_id(sample_index):
+    """
+    Test the error handler with a sample envelope
+    """
+    return (
+        ErrorHandler(TRANSACTION_MALFORMED_SAMPLE[sample_index], main_net=False)
+        .get_error()
+        .as_dict()
+    )
+
+
+@app.route("/v2/timeout/<int:sample_index>")
+def v2_timeout_id(sample_index):
+    """
+    Test the error handler with a sample envelope
+    """
+    return (
+        ErrorHandler(TIMEOUT_SAMPLE[sample_index], main_net=False).get_error().as_dict()
+    )
+
+
+@app.route("/v2/bad_request/<int:sample_index>")
+def v2_bad_request_id(sample_index):
+    """
+    Test the error handler with a sample envelope
+    """
+    return (
+        ErrorHandler(BAD_REQUEST_SAMPLE[sample_index], main_net=False)
+        .get_error()
+        .as_dict()
+    )
+
+
+@app.route("/v2/before_history/<int:sample_index>")
+def v2_before_history_id(sample_index):
+    """
+    Test the error handler with a sample envelope
+    """
+    return (
+        ErrorHandler(BEFORE_HISTORY_SAMPLE[sample_index], main_net=False)
+        .get_error()
+        .as_dict()
+    )
+
+
+@app.route("/v2/resource_missing/<int:sample_index>")
+def v2_resource_missing_id(sample_index):
+    """
+    Test the error handler with a sample envelope
+    """
+    return (
+        ErrorHandler(RESOURCE_MISSING_SAMPLE[sample_index], main_net=False)
+        .get_error()
+        .as_dict()
+    )
+
+
+@app.route("/v2/unknown/<int:sample_index>")
+def v2_unknown_id(sample_index):
+    """
+    Test the error handler with a sample envelope
+    """
+    return (
+        ErrorHandler(UNKNOWN_SAMPLE[sample_index], main_net=False).get_error().as_dict()
     )
 
 
