@@ -1,6 +1,6 @@
-from stellar_sdk.xdr import TransactionResult
+from stellar_sdk.xdr import DecoratedSignature, TransactionEnvelope, TransactionResult
 
-from consts import MESSAGES, RESPONSE_BODY_TYPE
+from consts import MALFORMED_ERRORS_MESSAGES, MESSAGES, RESPONSE_BODY_TYPE
 from models import StellarError
 from transaction_codes_map import TRANSACTION_CODE_MAP
 
@@ -15,7 +15,10 @@ class ErrorHandler:
         Treats the error and returns a stellar error model
         """
         stellar_error = StellarError(main_net=self.main_net)
-        stellar_error.set_title(self.error["title"] if "title" in self.error else None)
+
+        error_type = self.error["title"] if "title" in self.error else None
+        stellar_error.set_error_type(error_type)
+
         stellar_error.set_status(
             self.error["status"] if "status" in self.error else None
         )
@@ -23,17 +26,17 @@ class ErrorHandler:
             self.error["detail"] if "detail" in self.error else None
         )
 
-        error_type = (
-            RESPONSE_BODY_TYPE[self.error["title"]]
-            if self.error["title"] in RESPONSE_BODY_TYPE
-            else None
-        )
-        if error_type:
-            return HANDLERS[error_type](self.error, stellar_error)
-        return HANDLERS["UNEXPECTED_ERROR"](self.error, stellar_error)
+        error_type = stellar_error.get_error_type()
+
+        if error_type and error_type in RESPONSE_BODY_TYPE:
+            return HANDLERS[RESPONSE_BODY_TYPE[error_type]](self.error, stellar_error)
+        return HANDLERS["UNKNOWN"](self.error, stellar_error)
 
 
 def _transaction_failed_(error: object, stellar_error: StellarError) -> StellarError:
+    """
+    Treats transaction failed error shape and returns a stellar error model
+    """
     if "extras" in error and error["extras"]:
         extras = error["extras"]
         tx_result = extras["result_xdr"]
@@ -82,27 +85,69 @@ def _transaction_failed_(error: object, stellar_error: StellarError) -> StellarE
 
 
 def _transaction_malformed_(error: object, stellar_error: StellarError) -> StellarError:
-    pass
-
-
-def _before_history_(error: object, stellar_error: StellarError) -> StellarError:
-    pass
-
-
-def _stale_history_(error: object, stellar_error: StellarError) -> StellarError:
-    pass
-
-
-def _timeout_(error: object, stellar_error: StellarError) -> StellarError:
-    pass
+    """
+    Treats transaction malformed error shape and returns a stellar error model
+    """
+    if "extras" in error and error["extras"]:
+        extras = error["extras"]
+        if "envelope_xdr" in extras:
+            try:
+                envelope = TransactionEnvelope.from_xdr(extras["envelope_xdr"]).__dict__
+                if "v1" in envelope:
+                    if hasattr(envelope["v1"], "signatures"):
+                        signatures = envelope["v1"].signatures
+                        message = {
+                            "message": MALFORMED_ERRORS_MESSAGES["BAD_SIGNATURES"],
+                            "signatures": [],
+                        }
+                        for signature in signatures:
+                            message["signatures"].append(
+                                str(signature.signature.signature)
+                            )  # TODO: Convert to string
+                            print(signature.signature.signature)
+                        stellar_error.set_more_details(message)
+            except ValueError as e:
+                stellar_error.set_more_details({"envelope": str(e)})
+    return stellar_error
 
 
 def _bad_request_(error: object, stellar_error: StellarError) -> StellarError:
-    pass
+    """
+    Treats bad request error shape and returns a stellar error model
+    """
+    if "extras" in error and error["extras"]:
+        extras = error["extras"]
+        reason = {}
+        if hasattr(extras, "invalid_field"):
+            reason["invalid_field"] = extras["invalid_field"]
+        if hasattr(extras, "reason"):
+            reason["reason"] = extras["reason"]
+        stellar_error.set_more_details(reason if reason else None)
+
+    return stellar_error
 
 
-def _unexpected_error_(error: object, stellar_error: StellarError) -> StellarError:
-    pass
+def _before_history_(error: object, stellar_error: StellarError) -> StellarError:
+    return stellar_error
+
+
+def _stale_history_(error: object, stellar_error: StellarError) -> StellarError:
+    return stellar_error
+
+
+def _timeout_(error: object, stellar_error: StellarError) -> StellarError:
+    return stellar_error
+
+
+def _resource_missing_(error: object, stellar_error: StellarError) -> StellarError:
+    return stellar_error
+
+
+def _unknown_(error: object, stellar_error: StellarError) -> StellarError:
+    if stellar_error.get_message() is None:
+        stellar_error.set_message("Unknown error")
+    stellar_error.set_more_details({"error": error})
+    return stellar_error
 
 
 HANDLERS = {
@@ -112,5 +157,6 @@ HANDLERS = {
     "STALE_HISTORY": _stale_history_,
     "TIMEOUT": _timeout_,
     "BAD_REQUEST": _bad_request_,
-    "UNEXPECTED_ERROR": _unexpected_error_,
+    "RESOURCE_MISSING": _resource_missing_,
+    "UNKNOWN": _unknown_,
 }

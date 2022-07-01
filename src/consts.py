@@ -5,7 +5,8 @@ RESPONSE_BODY_TYPE = {
     "Historical DB Is Too Stale": "STALE_HISTORY",
     "Timeout": "TIMEOUT",
     "Bad Request": "BAD_REQUEST",
-    "Unexpected Error": "UNEXPECTED_ERROR",
+    "Resource Missing": "RESOURCE_MISSING",
+    "Unknown": "UNKNOWN",
 }
 
 NETWORK_PASSPHRASE = {
@@ -15,4 +16,8 @@ NETWORK_PASSPHRASE = {
 
 MESSAGES = {
     "NO_OPERATION_DETAILS": "No operation details found",
+}
+
+MALFORMED_ERRORS_MESSAGES = {
+    "BAD_SIGNATURES": "Some source accounts don't exist. Are you on the right network?",
 }
